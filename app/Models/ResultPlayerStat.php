@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -83,7 +84,8 @@ class ResultPlayerStat extends Model
         return $this->club->name;
     }
 
-    public function getIsTopPerformerAttribute(): bool
+    #[Attribute]
+    public function isTopPerformer(): bool
     {
         return $this->rating > 9;
     }
