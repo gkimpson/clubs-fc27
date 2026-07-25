@@ -22,9 +22,9 @@ class ResultPlayerStatFactory extends Factory
         $club = Club::inRandomOrder()->first();
 
         return [
-            'result_id' => $result?->id ?? Result::factory(),
-            'player_id' => $player?->id ?? Player::factory(),
-            'club_id' => $club?->id ?? Club::factory(),
+            'result_id' => $result !== null ? $result->id : Result::factory(),
+            'player_id' => $player !== null ? $player->id : Player::factory(),
+            'club_id' => $club !== null ? $club->id : Club::factory(),
             'platform' => fake()->randomElement(Platforms::values()),
             'goals' => fake()->numberBetween(0, 3),
             'assists' => fake()->numberBetween(0, 2),

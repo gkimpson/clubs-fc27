@@ -19,8 +19,8 @@ class UserClubFactory extends Factory
         $club = Club::inRandomOrder()->first();
 
         return [
-            'user_id' => $user?->id ?? User::factory(),
-            'club_id' => $club?->id ?? Club::factory(),
+            'user_id' => $user !== null ? $user->id : User::factory(),
+            'club_id' => $club !== null ? $club->id : Club::factory(),
             'ea_club_id' => fake()->unique()->numberBetween(1000000, 9999999),
             'platform' => fake()->randomElement(Platforms::values()),
             'last_scanned_at' => fake()->optional()->dateTime(),

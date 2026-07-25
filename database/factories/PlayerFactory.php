@@ -19,7 +19,7 @@ class PlayerFactory extends Factory
         $club = Club::inRandomOrder()->first();
 
         return [
-            'club_id' => $club?->id ?? Club::factory(),
+            'club_id' => $club !== null ? $club->id : Club::factory(),
             'name' => fake()->name(),
             'ea_player_id' => fake()->unique()->numberBetween(1000000, 9999999),
             'platform' => fake()->randomElement(Platforms::values()),

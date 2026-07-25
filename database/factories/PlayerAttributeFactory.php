@@ -16,7 +16,7 @@ class PlayerAttributeFactory extends Factory
     {
         $player = Player::inRandomOrder()->first();
         $attributes = [
-            'player_id' => $player?->id ?? Player::factory(),
+            'player_id' => $player !== null ? $player->id : Player::factory(),
             'fav_position' => fake()->randomElement(['G', 'D', 'M', 'F', 'A']),
         ];
 
