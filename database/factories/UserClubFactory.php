@@ -16,8 +16,8 @@ class UserClubFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'club_id' => Club::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'club_id' => Club::inRandomOrder()->first()?->id ?? Club::factory(),
             'ea_club_id' => fake()->unique()->numberBetween(1000000, 9999999),
             'platform' => fake()->randomElement(Platforms::values()),
             'last_scanned_at' => fake()->optional()->dateTime(),

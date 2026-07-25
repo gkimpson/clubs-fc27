@@ -14,7 +14,7 @@ class ResultMatchStatFactory extends Factory
     public function definition(): array
     {
         return [
-            'result_id' => Result::factory(),
+            'result_id' => Result::inRandomOrder()->first()?->id ?? Result::factory(),
             'home_tackles_made' => fake()->numberBetween(5, 20),
             'away_tackles_made' => fake()->numberBetween(5, 20),
             'home_tackles_attempted' => fake()->numberBetween(10, 30),

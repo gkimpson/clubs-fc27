@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./vendor/bin/pint --dirty --format agent 2>/dev/null || true",
+            "if": "Bash(git commit*)",
+            "statusMessage": "Running PHP code formatter (pint)..."
+          }
+        ]
+      }
+    ]
+  }
+}

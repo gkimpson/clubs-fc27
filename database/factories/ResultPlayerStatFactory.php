@@ -18,9 +18,9 @@ class ResultPlayerStatFactory extends Factory
     public function definition(): array
     {
         return [
-            'result_id' => Result::factory(),
-            'player_id' => Player::factory(),
-            'club_id' => Club::factory(),
+            'result_id' => Result::inRandomOrder()->first()?->id ?? Result::factory(),
+            'player_id' => Player::inRandomOrder()->first()?->id ?? Player::factory(),
+            'club_id' => Club::inRandomOrder()->first()?->id ?? Club::factory(),
             'platform' => fake()->randomElement(Platforms::values()),
             'goals' => fake()->numberBetween(0, 3),
             'assists' => fake()->numberBetween(0, 2),

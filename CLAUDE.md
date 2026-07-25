@@ -1,3 +1,80 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Quick Commands
+
+```bash
+# Development
+composer run dev              # Run dev server (Artisan + Vite) via Laravel Herd at https://clubs-fc27.test
+npm run dev                   # Run Vite dev server only
+npm run build                 # Build frontend assets
+php artisan migrate          # Run migrations (use --fresh for reset)
+
+# Testing & Linting
+composer run test            # Run all tests, linting, and type checks
+php artisan test --compact   # Run Pest tests only (faster)
+php artisan test --filter=TestName  # Run specific test
+composer run lint            # Format code with Pint
+composer run lint:check      # Check formatting without changes
+composer run types:check     # Run PHPStan type analysis (level 5)
+
+# Database & Utilities
+php artisan tinker                 # PHP REPL in app context
+php artisan route:list             # Show all routes
+php artisan db:seed               # Seed database
+php artisan migrate:refresh --seed # Reset and seed database
+herd sites                         # Show Herd sites (app at clubs-fc27.test)
+```
+
+## Architecture Overview
+
+**Routes & View Files:**
+- `routes/web.php` — Main web routes (settings/profile routes imported from `routes/settings.php`)
+- `routes/api.php` — API routes (currently empty)
+- `resources/views/` — Blade templates
+- `resources/views/dashboard.blade.php` — Main authenticated dashboard (starting point for feature development)
+
+**App Structure:**
+- `app/Models/User.php` — User model with Fortify auth, two-factor, and spatie/laravel-permission roles
+- `app/Livewire/` — Livewire v4 components for reactive UI
+- `app/Actions/Fortify/` — Fortify action classes (CreateNewUser, ResetUserPassword, etc.)
+- `app/Concerns/` — Validation rule traits shared across models
+- `app/Providers/Filament/AdminPanelProvider.php` — Filament admin panel configuration
+- `app/Http/Controllers/` — HTTP controllers (minimal use; Livewire preferred for UI)
+
+**Authentication & Authorization:**
+- Fortify (v1) — Login/registration/password reset flows
+- Sanctum (v4) — API token authentication
+- Spatie/laravel-permission (v8) — Role-based access control (RBAC), recently added
+- Two-factor authentication available on User model
+
+**Frontend Stack:**
+- Vite for asset bundling
+- Tailwind CSS v4 for styling
+- Livewire v4 for reactive components
+- Flux UI (free) for component library
+- Alpine.js for client-side interactions
+
+**Testing:**
+- Pest v4 with Laravel plugin
+- Tests in `tests/Feature/` and `tests/Unit/`
+- SQLite for testing database
+
+**Code Quality:**
+- PHPStan v3 at level 5 (Larastan-enabled)
+- Pint for PSR-12 formatting
+- All changes must pass tests before merging
+
+## Project-Specific Notes
+
+- App runs on Laravel Herd at `https://clubs-fc27.test` (use `herd sites` to verify)
+- If frontend changes don't appear, run `npm run build` or `composer run dev`
+- Spatie permissions have been recently added — check User model and migrations for RBAC patterns
+- Custom skills are available in `.claude/skills/` — activate relevant ones when working in those domains
+
+---
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

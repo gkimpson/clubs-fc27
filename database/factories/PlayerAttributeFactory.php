@@ -14,7 +14,7 @@ class PlayerAttributeFactory extends Factory
 {
     public function definition(): array
     {
-        $attributes = ['player_id' => Player::factory(), 'fav_position' => fake()->randomElement(['G', 'D', 'M', 'F', 'A'])];
+        $attributes = ['player_id' => Player::inRandomOrder()->first()?->id ?? Player::factory(), 'fav_position' => fake()->randomElement(['G', 'D', 'M', 'F', 'A'])];
 
         foreach (PlayerAttributes::values() as $attribute) {
             $attributes[$attribute] = fake()->optional()->numberBetween(30, 99);

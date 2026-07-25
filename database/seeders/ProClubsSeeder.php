@@ -20,9 +20,9 @@ class ProClubsSeeder extends Seeder
 
         Club::factory(20)->create();
 
-        Player::factory(100)->create();
+        $players = Player::factory(100)->create();
 
-        PlayerAttribute::factory(100)->create();
+        $players->each(fn ($player) => PlayerAttribute::factory()->create(['player_id' => $player->id]));
 
         Result::factory(50)->create();
 

@@ -17,7 +17,7 @@ class PlayerFactory extends Factory
     public function definition(): array
     {
         return [
-            'club_id' => Club::factory(),
+            'club_id' => Club::inRandomOrder()->first()?->id ?? Club::factory(),
             'name' => fake()->name(),
             'ea_player_id' => fake()->unique()->numberBetween(1000000, 9999999),
             'platform' => fake()->randomElement(Platforms::values()),
