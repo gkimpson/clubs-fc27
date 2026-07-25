@@ -25,12 +25,15 @@ class ResultFactory extends Factory
             default => Outcomes::DRAW,
         };
 
+        $homeClub = Club::inRandomOrder()->first();
+        $awayClub = Club::inRandomOrder()->first();
+
         return [
             'ea_result_id' => fake()->unique()->uuid(),
             'platform' => fake()->randomElement(Platforms::values()),
             'match_type' => fake()->randomElement(MatchTypes::values()),
-            'home_club_id' => Club::inRandomOrder()->first()?->id ?? Club::factory(),
-            'away_club_id' => Club::inRandomOrder()->first()?->id ?? Club::factory(),
+            'home_club_id' => $homeClub?->id ?? Club::factory(),
+            'away_club_id' => $awayClub?->id ?? Club::factory(),
             'home_goals' => $homeGoals,
             'away_goals' => $awayGoals,
             'outcome' => $outcome,

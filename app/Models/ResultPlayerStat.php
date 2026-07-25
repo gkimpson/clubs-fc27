@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Attribute;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property Club $club
+ */
 class ResultPlayerStat extends Model
 {
     use HasFactory;
@@ -81,12 +84,13 @@ class ResultPlayerStat extends Model
 
     public function getClubName(): string
     {
-        return $this->club->name;
+        return $this->club->name ?? '';
     }
 
-    #[Attribute]
-    public function isTopPerformer(): bool
+    public function isTopPerformer(): Attribute
     {
-        return $this->rating > 9;
+        return Attribute::make(
+            get: fn () => $this->rating > 9,
+        );
     }
 }

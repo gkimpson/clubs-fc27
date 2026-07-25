@@ -17,10 +17,14 @@ class ResultPlayerStatFactory extends Factory
 {
     public function definition(): array
     {
+        $result = Result::inRandomOrder()->first();
+        $player = Player::inRandomOrder()->first();
+        $club = Club::inRandomOrder()->first();
+
         return [
-            'result_id' => Result::inRandomOrder()->first()?->id ?? Result::factory(),
-            'player_id' => Player::inRandomOrder()->first()?->id ?? Player::factory(),
-            'club_id' => Club::inRandomOrder()->first()?->id ?? Club::factory(),
+            'result_id' => $result?->id ?? Result::factory(),
+            'player_id' => $player?->id ?? Player::factory(),
+            'club_id' => $club?->id ?? Club::factory(),
             'platform' => fake()->randomElement(Platforms::values()),
             'goals' => fake()->numberBetween(0, 3),
             'assists' => fake()->numberBetween(0, 2),

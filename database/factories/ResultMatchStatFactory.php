@@ -13,8 +13,10 @@ class ResultMatchStatFactory extends Factory
 {
     public function definition(): array
     {
+        $result = Result::inRandomOrder()->first();
+
         return [
-            'result_id' => Result::inRandomOrder()->first()?->id ?? Result::factory(),
+            'result_id' => $result?->id ?? Result::factory(),
             'home_tackles_made' => fake()->numberBetween(5, 20),
             'away_tackles_made' => fake()->numberBetween(5, 20),
             'home_tackles_attempted' => fake()->numberBetween(10, 30),

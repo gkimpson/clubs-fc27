@@ -19,6 +19,10 @@ composer run lint            # Format code with Pint
 composer run lint:check      # Check formatting without changes
 composer run types:check     # Run PHPStan type analysis (level 5)
 
+## Commits
+
+Do not add co-authored commit trailers. All commits are authored by the user only.
+
 # Database & Utilities
 php artisan tinker                 # PHP REPL in app context
 php artisan route:list             # Show all routes
