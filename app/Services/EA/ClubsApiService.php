@@ -120,4 +120,132 @@ class ClubsApiService
 
         return null;
     }
+
+    public function clubsInfo(string $platform, int $eaClubId): ?array
+    {
+        return $this->performApiCall('clubs/info', [
+            'platform' => $platform,
+            'clubIds' => $eaClubId,
+        ]);
+    }
+
+    public function getMatchStats(string $platform, int $eaClubId, string $matchType, int $maxResultCount = 20): ?array
+    {
+        $maxResultCount = max(1, $maxResultCount);
+
+        return $this->performApiCall('clubs/matches', [
+            'matchType' => $matchType,
+            'platform' => $platform,
+            'clubIds' => $eaClubId,
+            'maxResultCount' => $maxResultCount,
+        ]);
+    }
+
+    public function memberStats(string $platform, int $eaClubId): ?array
+    {
+        return $this->performApiCall('members/stats', [
+            'platform' => $platform,
+            'clubId' => $eaClubId,
+        ]);
+    }
+
+    public function careerStats(string $platform, int $eaClubId): ?array
+    {
+        return $this->performApiCall('members/career/stats', [
+            'platform' => $platform,
+            'clubId' => $eaClubId,
+        ]);
+    }
+
+    public function seasonStats(string $platform, int $eaClubId): ?array
+    {
+        return $this->performApiCall('clubs/seasonalStats', [
+            'platform' => $platform,
+            'clubIds' => $eaClubId,
+        ]);
+    }
+
+    public function settings(string $platform): ?array
+    {
+        return $this->performApiCall('settings', [
+            'platform' => $platform,
+        ]);
+    }
+
+    public function search(string $platform, string $clubName): ?array
+    {
+        return $this->performApiCall('allTimeLeaderboard/search', [
+            'platform' => $platform,
+            'clubName' => $clubName,
+        ]);
+    }
+
+    public function leaderboard(string $platform, string $type): ?array
+    {
+        $endpoint = $type === 'club' ? 'clubRankLeaderboard' : 'seasonRankLeaderboard';
+
+        return $this->performApiCall($endpoint, [
+            'platform' => $platform,
+        ]);
+    }
+
+    public function overallStats(string $platform, int $eaClubId): ?array
+    {
+        return $this->performApiCall('clubs/overallStats', [
+            'platform' => $platform,
+            'clubIds' => $eaClubId,
+        ]);
+    }
+
+    public function playoffAchievements(string $platform, int $eaClubId): ?array
+    {
+        return $this->performApiCall('club/playoffAchievements', [
+            'platform' => $platform,
+            'clubId' => $eaClubId,
+        ]);
+    }
+
+    public function compareCareerStats(string $platform, int $eaClubId1, int $eaClubId2): array
+    {
+        $club1 = $this->careerStats($platform, $eaClubId1);
+        $club2 = $this->careerStats($platform, $eaClubId2);
+
+        return [
+            $eaClubId1 => $club1,
+            $eaClubId2 => $club2,
+        ];
+    }
+
+    public function compareMembersStats(string $platform, int $eaClubId1, int $eaClubId2): array
+    {
+        $club1 = $this->memberStats($platform, $eaClubId1);
+        $club2 = $this->memberStats($platform, $eaClubId2);
+
+        return [
+            $eaClubId1 => $club1,
+            $eaClubId2 => $club2,
+        ];
+    }
+
+    public function compareClubsInfo(string $platform, int $eaClubId1, int $eaClubId2): array
+    {
+        $club1 = $this->clubsInfo($platform, $eaClubId1);
+        $club2 = $this->clubsInfo($platform, $eaClubId2);
+
+        return [
+            $eaClubId1 => $club1,
+            $eaClubId2 => $club2,
+        ];
+    }
+
+    public function compareOverallStats(string $platform, int $eaClubId1, int $eaClubId2): array
+    {
+        $club1 = $this->overallStats($platform, $eaClubId1);
+        $club2 = $this->overallStats($platform, $eaClubId2);
+
+        return [
+            $eaClubId1 => $club1,
+            $eaClubId2 => $club2,
+        ];
+    }
 }
