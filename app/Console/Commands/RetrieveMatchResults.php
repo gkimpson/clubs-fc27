@@ -85,7 +85,7 @@ class RetrieveMatchResults extends Command
             'maxResultCount' => 50,
         ]);
 
-        if (! $matchData || ! is_array($matchData)) {
+        if (! $matchData) {
             $this->error('Failed to retrieve match data from EA API');
 
             return self::FAILURE;
