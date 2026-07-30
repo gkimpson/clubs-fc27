@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\MatchTypes;
+use App\Enums\Platforms;
 use App\Models\Club;
 use App\Models\User;
 use App\Services\EA\ClubsApiService;
@@ -67,20 +69,32 @@ class RetrieveMatchResults extends Command
 
         $this->info("Retrieving match results for club: {$eaClubId} on platform: {$platform}");
 
-        $matchData = $this->apiService->performApiCall(
-            "club/{$platform}/{$eaClubId}/matches",
-        );
+        try {
+            $platformEnum = Platforms::from($platform);
+            $matchTypeEnum = MatchTypes::LEAGUE;
+        } catch (\ValueError $e) {
+            $this->error("Invalid platform: {$platform}");
 
-        if (! $matchData || ! isset($matchData['matches'])) {
+            return self::FAILURE;
+        }
+
+        $matchData = $this->apiService->performApiCall('clubs/matches', [
+            'matchType' => $matchTypeEnum->value,
+            'platform' => $platformEnum->value,
+            'clubIds' => $eaClubId,
+            'maxResultCount' => 50,
+        ]);
+
+        if (! $matchData || ! is_array($matchData)) {
             $this->error('Failed to retrieve match data from EA API');
 
             return self::FAILURE;
         }
 
-        $resultCount = count($matchData['matches']);
+        $resultCount = count($matchData);
         $this->info("Found {$resultCount} matches");
 
-        $this->resultService->insertResults($matchData['matches'], $platform);
+        $this->resultService->insertResults($matchData, $platform);
 
         $this->info('Match results retrieved and stored successfully');
 
