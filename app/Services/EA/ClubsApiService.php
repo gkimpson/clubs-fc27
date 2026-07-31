@@ -40,7 +40,7 @@ class ClubsApiService
         }
     }
 
-    private function doEnhancedApiCall(string $endpoint, array $params = []): ?string
+    private function doEnhancedApiCall(string $endpoint, array $params = []): string
     {
         if ($this->useCurl) {
             return $this->doCurlApiCall($endpoint, $params);
@@ -49,7 +49,7 @@ class ClubsApiService
         return $this->doHttpClientApiCall($endpoint, $params);
     }
 
-    private function doCurlApiCall(string $endpoint, array $params = []): ?string
+    private function doCurlApiCall(string $endpoint, array $params = []): string
     {
         $url = self::API_URL.$endpoint.'?'.http_build_query($params);
 
@@ -140,10 +140,10 @@ class ClubsApiService
 
         Log::error('All curl API strategies failed', ['endpoint' => $endpoint]);
 
-        return null;
+        return '';
     }
 
-    private function doHttpClientApiCall(string $endpoint, array $params = []): ?string
+    private function doHttpClientApiCall(string $endpoint, array $params = []): string
     {
         $url = self::API_URL.$endpoint;
 
@@ -230,7 +230,7 @@ class ClubsApiService
 
         Log::error('All API strategies failed', ['endpoint' => $endpoint]);
 
-        return null;
+        return '';
     }
 
     public function clubsInfo(string $platform, int $eaClubId): ?array
