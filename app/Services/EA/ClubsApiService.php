@@ -51,11 +51,7 @@ class ClubsApiService
 
     private function doCurlApiCall(string $endpoint, array $params = []): ?string
     {
-        $url = self::API_URL.$endpoint;
-
-        if (! empty($params)) {
-            $url .= '?'.http_build_query($params);
-        }
+        $url = self::API_URL.$endpoint.'?'.http_build_query($params);
 
         $strategies = [
             [
@@ -107,41 +103,38 @@ class ClubsApiService
         foreach ($strategies as $strategy) {
             Log::info('Trying curl API strategy: '.$strategy['name'], ['url' => $url]);
 
-            try {
-                $ch = curl_init();
-                curl_setopt_array($ch, [
-                    CURLOPT_URL => $url,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT => 15,
-                    CURLOPT_CONNECTTIMEOUT => 15,
-                    CURLOPT_HTTPHEADER => $strategy['headers'],
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                ]);
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '', // Enable automatic decompression of gzip/deflate/br
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_CONNECTTIMEOUT => 15,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2,
+                CURLOPT_HTTPHEADER => $strategy['headers'],
+            ]);
 
-                $response = curl_exec($ch);
-                $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                $error = curl_error($ch);
-                curl_close($ch);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
 
-                Log::info('Curl strategy result', [
-                    'strategy' => $strategy['name'],
-                    'http_code' => $statusCode,
-                    'response_length' => is_string($response) ? strlen($response) : 0,
-                    'curl_error' => $error,
-                ]);
+            Log::info('Curl strategy result', [
+                'strategy' => $strategy['name'],
+                'http_code' => $httpCode,
+                'response_length' => is_string($response) ? strlen($response) : 0,
+                'curl_error' => $curlError,
+                'is_access_denied' => is_string($response) && strpos($response, 'Access Denied') !== false,
+            ]);
 
-                if ($statusCode === 200 && is_string($response) && ! str_contains($response, 'Access Denied')) {
-                    Log::info('Curl strategy succeeded: '.$strategy['name']);
+            curl_close($ch);
 
-                    return $response;
-                }
-            } catch (Exception $e) {
-                Log::error('Curl API request failed with exception', [
-                    'strategy' => $strategy['name'],
-                    'message' => $e->getMessage(),
-                ]);
+            if ($httpCode === 200 && is_string($response) && ! empty($response) && strpos($response, 'Access Denied') === false) {
+                Log::info('Curl strategy succeeded: '.$strategy['name']);
+
+                return $response;
             }
         }
 
