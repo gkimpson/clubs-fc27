@@ -54,6 +54,7 @@ class RetrieveMatchResults extends Command
                 return self::FAILURE;
             }
 
+            /** @var Club $club */
             $eaClubId = $club->ea_club_id;
         } else {
             $club = Club::where('ea_club_id', $eaClubId)

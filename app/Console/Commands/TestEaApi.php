@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('test:ea-api {--club-id=5706062 : Club ID to test} {--platform=common-gen5 : Platform} {--endpoint=all : Endpoint to test}')]
+#[Signature('test:ea-api {--club-id=5706062 : Club ID to test} {--platform=common-gen5 : Platform} {--endpoint=all : Endpoint to test} {--use-curl : Use curl instead of Laravel HTTP client}')]
 #[Description('Test EA API endpoints and data retrieval (idempotent)')]
 class TestEaApi extends Command
 {
@@ -24,11 +24,17 @@ class TestEaApi extends Command
         $clubId = (int) $this->option('club-id');
         $platform = $this->option('platform');
         $endpoint = $this->option('endpoint');
+        $useCurl = $this->option('use-curl');
+
+        if ($useCurl) {
+            $this->apiService->setUseCurl(true);
+        }
 
         $this->info('Testing EA API endpoints...');
         $this->line("Club ID: <fg=cyan>{$clubId}</>");
         $this->line("Platform: <fg=cyan>{$platform}</>");
         $this->line("Endpoint(s): <fg=cyan>{$endpoint}</>");
+        $this->line('Method: <fg=cyan>'.($useCurl ? 'curl' : 'Laravel HTTP').'</>');
         $this->newLine();
 
         $endpoints = $endpoint === 'all'
@@ -69,14 +75,8 @@ class TestEaApi extends Command
             default => null,
         };
 
-        if (! $response) {
-            $this->error('  ✗ API returned null/empty response');
-
-            return false;
-        }
-
         if (! is_array($response)) {
-            $this->error('  ✗ Response is not an array: '.gettype($response));
+            $this->error('  ✗ API returned null/empty response or response is not an array');
 
             return false;
         }
