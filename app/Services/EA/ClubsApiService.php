@@ -103,38 +103,73 @@ class ClubsApiService
         foreach ($strategies as $strategy) {
             Log::info('Trying curl API strategy: '.$strategy['name'], ['url' => $url]);
 
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '', // Enable automatic decompression of gzip/deflate/br
-                CURLOPT_TIMEOUT => 15,
-                CURLOPT_CONNECTTIMEOUT => 15,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => 0,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2,
-                CURLOPT_HTTPHEADER => $strategy['headers'],
-            ]);
+            try {
+                $ch = curl_init();
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
+                $options = [
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 15,
+                    CURLOPT_CONNECTTIMEOUT => 15,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => 0,
+                    CURLOPT_HTTPHEADER => $strategy['headers'],
+                ];
 
-            Log::info('Curl strategy result', [
-                'strategy' => $strategy['name'],
-                'http_code' => $httpCode,
-                'response_length' => is_string($response) ? strlen($response) : 0,
-                'curl_error' => $curlError,
-                'is_access_denied' => is_string($response) && strpos($response, 'Access Denied') !== false,
-            ]);
+                // Try ENCODING if available, but don't fail if not supported
+                if (defined('CURLOPT_ENCODING')) {
+                    $options[CURLOPT_ENCODING] = '';
+                }
 
-            curl_close($ch);
+                // Try HTTP/2 if available, fallback to default
+                if (defined('CURL_HTTP_VERSION_2')) {
+                    $options[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_2;
+                }
 
-            if ($httpCode === 200 && is_string($response) && ! empty($response) && strpos($response, 'Access Denied') === false) {
-                Log::info('Curl strategy succeeded: '.$strategy['name']);
+                curl_setopt_array($ch, $options);
 
-                return $response;
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlErrno = curl_errno($ch);
+                $curlError = curl_error($ch);
+                $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+
+                Log::info('Curl strategy result', [
+                    'strategy' => $strategy['name'],
+                    'http_code' => $httpCode,
+                    'response_type' => gettype($response),
+                    'response_length' => is_string($response) ? strlen($response) : 0,
+                    'curl_errno' => $curlErrno,
+                    'curl_error' => $curlError,
+                    'effective_url' => $effectiveUrl,
+                    'is_access_denied' => is_string($response) && strpos($response, 'Access Denied') !== false,
+                    'response_preview' => is_string($response) ? substr($response, 0, 200) : 'N/A',
+                ]);
+
+                curl_close($ch);
+
+                // Check for curl errors
+                if ($curlErrno) {
+                    Log::error('Curl error occurred', [
+                        'strategy' => $strategy['name'],
+                        'errno' => $curlErrno,
+                        'error' => $curlError,
+                    ]);
+
+                    continue;
+                }
+
+                if ($httpCode === 200 && is_string($response) && ! empty($response) && strpos($response, 'Access Denied') === false) {
+                    Log::info('Curl strategy succeeded: '.$strategy['name']);
+
+                    return $response;
+                }
+            } catch (Exception $e) {
+                Log::error('Curl strategy exception', [
+                    'strategy' => $strategy['name'],
+                    'exception' => $e->getMessage(),
+                ]);
             }
         }
 
