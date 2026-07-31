@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'ea' => [
+        'proxy' => env('EA_API_PROXY'),
+    ],
+
 ];

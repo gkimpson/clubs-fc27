@@ -14,9 +14,23 @@ class ClubsApiService
 
     private bool $useCurl = false;
 
+    private ?string $proxy;
+
+    public function __construct()
+    {
+        $this->proxy = config('services.ea.proxy');
+    }
+
     public function setUseCurl(bool $useCurl): self
     {
         $this->useCurl = $useCurl;
+
+        return $this;
+    }
+
+    public function setProxy(?string $proxy): self
+    {
+        $this->proxy = $proxy;
 
         return $this;
     }
@@ -127,6 +141,10 @@ class ClubsApiService
                     $options[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_2;
                 }
 
+                if ($this->proxy) {
+                    $options[CURLOPT_PROXY] = $this->proxy;
+                }
+
                 curl_setopt_array($ch, $options);
 
                 $response = curl_exec($ch);
@@ -175,7 +193,62 @@ class ClubsApiService
 
         Log::error('All curl API strategies failed', ['endpoint' => $endpoint]);
 
+        if (! $this->proxy) {
+            $relayed = $this->doRelayFallbackCall($url);
+
+            if ($relayed !== '') {
+                return $relayed;
+            }
+        }
+
         return '';
+    }
+
+    /**
+     * Last-resort fallback that routes the request through the r.jina.ai reader
+     * relay, which fetches the URL from its own infrastructure. This is a stopgap
+     * for hosts whose IP is edge-blocked by the EA/Akamai API ACL (see EA_API_PROXY
+     * for the proper fix) and is not a reliable substitute for a real proxy: it is
+     * rate-limited, unauthenticated, and outside our control.
+     */
+    private function doRelayFallbackCall(string $url): string
+    {
+        Log::warning('Direct EA API calls blocked, trying r.jina.ai relay fallback', ['url' => $url]);
+
+        $ch = curl_init();
+
+        curl_setopt_array($ch, [
+            CURLOPT_URL => 'https://r.jina.ai/'.$url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 25,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_FOLLOWLOCATION => true,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200 || ! is_string($response)) {
+            Log::error('Relay fallback failed', ['http_code' => $httpCode]);
+
+            return '';
+        }
+
+        $marker = "Markdown Content:\n";
+        $position = strpos($response, $marker);
+
+        if ($position === false) {
+            Log::error('Relay fallback returned unexpected format');
+
+            return '';
+        }
+
+        $body = trim(substr($response, $position + strlen($marker)));
+
+        Log::info('Relay fallback succeeded', ['response_length' => strlen($body)]);
+
+        return $body;
     }
 
     private function doHttpClientApiCall(string $endpoint, array $params = []): string
@@ -239,6 +312,7 @@ class ClubsApiService
                     ->withOptions([
                         'verify' => false,
                         'allow_redirects' => true,
+                        ...($this->proxy ? ['proxy' => $this->proxy] : []),
                     ])
                     ->get($url, $params);
 
